@@ -404,6 +404,14 @@ function SettingsPc(currentIndex)
                                 Medlemmer(currentIndex)
                             end
                         },
+                        {
+                            title = 'Opgraderinger',
+                            description = 'Opgrader dit druglab',
+                            icon = 'circle-up',
+                            onSelect = function()
+                                opgradePc(currentIndex)
+                            end
+                        }
                     }
                 })
             end
@@ -411,6 +419,27 @@ function SettingsPc(currentIndex)
         lib.showContext('druglab_settings')
      end)
 
+end
+
+function opgradePC(index)
+    lib.registerContext({
+        id = 'opgrade',
+        title = 'Druglab - Opgraderinger',
+        options = {
+            {
+                title = 'Politi-opgradering',
+                description = 'Tilkøb mulighed for at få en besked, når politiet begynder at raide dit lab',
+                icon = 'police',
+                onSelect = function()
+                    local input = lib.inputDialog('Angiv darkchat kanal', {
+                        {type = 'input', label = 'Angiv navnet på jers darkchat', description = 'Det er vigtigt, at dette er 100% det samme, som jeres darkchat kanal'},
+                    })
+
+                    buy_opgrade('police', input[1])
+                end
+            }
+        }
+    })
 end
 
 function Medlemmer(index)
