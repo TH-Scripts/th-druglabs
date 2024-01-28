@@ -49,7 +49,7 @@ function MissionerMenu(index, lvl)
             disabled = mission1,
             icon = 'battery-empty',
             onSelect = function()
-                ESX.TriggerServerCallback('arp-druglabs:checkCooldown', function(cooldown)
+                ESX.TriggerServerCallback('th-druglabs:checkCooldown', function(cooldown)
                     if not cooldown then
                         notifyCooldown()
                     else
@@ -64,7 +64,7 @@ function MissionerMenu(index, lvl)
             disabled = mission2,
             icon = 'battery-half',
             onSelect = function()
-                ESX.TriggerServerCallback('arp-druglabs:checkCooldown', function(canExecute, remainingHours, remainingMinutes)
+                ESX.TriggerServerCallback('th-druglabs:checkCooldown', function(canExecute, remainingHours, remainingMinutes)
                     if canExecute then
                         AreYouSure(Config.Missions.Mission2.Price, 2, index)
                     else
@@ -79,7 +79,7 @@ function MissionerMenu(index, lvl)
             disabled = mission3,
             icon = 'battery-full',
             onSelect = function()
-                ESX.TriggerServerCallback('arp-druglabs:checkCooldown', function(canExecute, remainingHours, remainingMinutes)
+                ESX.TriggerServerCallback('th-druglabs:checkCooldown', function(canExecute, remainingHours, remainingMinutes)
                     if canExecute then
                         AreYouSure(Config.Missions.Mission3.Price, 3, index)
                     else
@@ -107,9 +107,9 @@ function AreYouSure(price, mission, index)
 
     if alert == 'confirm' then
         StopAnimation()
-        ESX.TriggerServerCallback('arp-druglabs:tjekmoney', function(HasMoney)
+        ESX.TriggerServerCallback('th-druglabs:tjekmoney', function(HasMoney)
             if HasMoney then
-                TriggerServerEvent('arp-druglabs:triggercooldown', index)
+                TriggerServerEvent('th-druglabs:triggercooldown', index)
                 if mission == 1 then
                     Mission(index)
                     mission1Started = true
@@ -357,7 +357,7 @@ function CreateTarget(coord, vehicle, index, blip)
                 label = 'Knæk køretøjet op',
                 distance = 10,
                 onSelect = function()
-                    ESX.TriggerServerCallback('arp-druglabs:tjeklockpick', function(item)
+                    ESX.TriggerServerCallback('th-druglabs:tjeklockpick', function(item)
                         if item then
                             HackVehicle(vehicle, index, blip)
                         else
@@ -386,7 +386,7 @@ function HackVehicle(vehicle, index, blip)
     local minigame
     local PlayerPed = GetPlayerServerId(PlayerId())
 
-    ClearPedTasks(PlayerPedId())
+    ClethedTasks(PlayerPedId())
     TaskStartScenarioInPlace(PlayerPedId(), 'WORLD_HUMAN_STAND_MOBILE', -1, true)
     if lib.progressCircle({
         duration = 20000,
@@ -411,7 +411,7 @@ function HackVehicle(vehicle, index, blip)
         end
     
         if minigame then
-            ClearPedTasks(PlayerPedId())
+            ClethedTasks(PlayerPedId())
             RemoveBlip(blip)
             if not CollectMoney then
                 local trunkpos = GetWorldPositionOfEntityBone(vehicle, GetEntityBoneIndexByName(vehicle, "platelight"))
@@ -435,15 +435,15 @@ function HackVehicle(vehicle, index, blip)
                         pos = vec3(0.0554, 0.2531, -0.1887),
                         rot = vec3(60.4762, 7.2424, -71.9051)
                     },
-                }) then ClearPedTasks(PlayerPedId()) Rewards(vehicle, index, blip) end
+                }) then ClethedTasks(PlayerPedId()) Rewards(vehicle, index, blip) end
 
             end
         else
             notifyDuFejledeMinigamet()
-            ClearPedTasks(PlayerPedId())
+            ClethedTasks(PlayerPedId())
         end
     else 
-        ClearPedTasks(PlayerPedId())
+        ClethedTasks(PlayerPedId())
         notifyStoppetProgress()
     end
 
@@ -455,20 +455,20 @@ function Rewards(vehicle, index, blip)
     if mission1Started then
         NyDruglabLevel(index, Config.Missions.Mission1.XP)
         exports.ox_target:removeZone(targetZone)
-        TriggerServerEvent('arp-druglab:reward', 1, PlayerPed, Config.Missions.Mission1.XP)
+        TriggerServerEvent('th-druglab:reward', 1, PlayerPed, Config.Missions.Mission1.XP)
         mission1Started = false
         RemoveSpawnedVehicle(vehicle)
     elseif mission2Started then
         NyDruglabLevel(index, Config.Missions.Mission2.XP)
         exports.ox_target:removeZone(targetZone)
-        TriggerServerEvent('arp-druglab:reward', 1, PlayerPed, Config.Missions.Mission2.XP)
+        TriggerServerEvent('th-druglab:reward', 1, PlayerPed, Config.Missions.Mission2.XP)
         mission2Started = false
         RemoveSpawnedVehicle(vehicle)
         notifyPoint()
     elseif mission3Started then
         NyDruglabLevel(index, Config.Missions.Mission3.XP)
         exports.ox_target:removeZone(targetZone)
-        TriggerServerEvent('arp-druglab:reward', 1, PlayerPed, Config.Missions.Mission3.XP)
+        TriggerServerEvent('th-druglab:reward', 1, PlayerPed, Config.Missions.Mission3.XP)
         mission3Started = false
         RemoveSpawnedVehicle(vehicle)
         notifyPoint()

@@ -122,7 +122,7 @@ end
 Citizen.CreateThread(function()
     while true do
         Citizen.Wait(1000)
-        ESX.TriggerServerCallback('arp-druglabs:getlocations', function(data)
+        ESX.TriggerServerCallback('th-druglabs:getlocations', function(data)
             if not RadialIsShowing then   
                 for _, v in pairs(data) do
                     local coords = v.coords
@@ -137,7 +137,7 @@ Citizen.CreateThread(function()
             end
         end)
 
-        ESX.TriggerServerCallback('arp-druglabs:getpincodes', function(data)
+        ESX.TriggerServerCallback('th-druglabs:getpincodes', function(data)
             if not RadialIsShowing then   
                 for _, v in pairs(data) do
                     for _, v2 in pairs(Config.Shells) do
@@ -155,8 +155,8 @@ Citizen.CreateThread(function()
     end
 end)
 
-RegisterNetEvent('arp-druglab:createdruglab', function()
-    ESX.TriggerServerCallback('arp-druglabs:getPlayers', function(data)
+RegisterNetEvent('th-druglab:createdruglab', function()
+    ESX.TriggerServerCallback('th-druglabs:getPlayers', function(data)
         local playerOptions = {}
         local shellOptions = {}
     
@@ -188,13 +188,13 @@ RegisterNetEvent('arp-druglab:createdruglab', function()
         
         if input[1] == 'coke' then
             local lab = 'coke'
-            TriggerServerEvent('arp-druglab:creatingdruglab', input[2], lab, PlayerPed, identifier)
+            TriggerServerEvent('th-druglab:creatingdruglab', input[2], lab, PlayerPed, identifier)
         elseif input[1] == 'hash' then
             local lab = 'hash'
-            TriggerServerEvent('arp-druglab:creatingdruglab', input[2], lab, PlayerPed, identifier)
+            TriggerServerEvent('th-druglab:creatingdruglab', input[2], lab, PlayerPed, identifier)
         elseif input[1] == 'meth' then
             local lab = 'meth'
-            TriggerServerEvent('arp-druglab:creatingdruglab', input[2], lab, PlayerPed, identifier)
+            TriggerServerEvent('th-druglab:creatingdruglab', input[2], lab, PlayerPed, identifier)
         end
     
     end)
@@ -210,12 +210,12 @@ function EnterDruglab(index)
         return
     end
 
-    ESX.TriggerServerCallback('arp-druglabs:getpincodes', function(data)
+    ESX.TriggerServerCallback('th-druglabs:getpincodes', function(data)
        for _, v in pairs(data) do
         if index == v.id then
             if input[1] == v.pinkode then
                 local PlayerPed  = GetPlayerServerId(PlayerId())
-                ESX.TriggerServerCallback('arp-druglabs:getshell', function(data)
+                ESX.TriggerServerCallback('th-druglabs:getshell', function(data)
                     if data == 'coke' then
                         SetEntityCoords(ped, Config.Shells.CokeShell.Udgang)
                     elseif data == 'hash' then
@@ -223,8 +223,8 @@ function EnterDruglab(index)
                     elseif data == 'meth' then
                         SetEntityCoords(ped, Config.Shells.MethShell.Udgang)
                     end
-                    TriggerServerEvent('arp-druglabs:enterrouting', index, PlayerPed)
-                    TriggerEvent('arp-druglabs:captureindex', index)
+                    TriggerServerEvent('th-druglabs:enterrouting', index, PlayerPed)
+                    TriggerEvent('th-druglabs:captureindex', index)
                 end, index)
             else
                 notifyForkertKode()
@@ -238,7 +238,7 @@ end
 function ExitDrugLab(index)
     local ped = PlayerPedId()
     local PlayerPed  = GetPlayerServerId(PlayerId())
-        ESX.TriggerServerCallback('arp-druglabs:gotindex', function(index)
+        ESX.TriggerServerCallback('th-druglabs:gotindex', function(index)
 
             function extractCoordinates(coordsStr)
                 local coords = json.decode(coordsStr)
@@ -252,11 +252,11 @@ function ExitDrugLab(index)
             local vCoordsStr = index
             local xValue, yValue, zValue = extractCoordinates(vCoordsStr)
             SetEntityCoords(ped, xValue, yValue, zValue)
-            TriggerServerEvent('arp-druglabs:exitrouting', PlayerPed)
+            TriggerServerEvent('th-druglabs:exitrouting', PlayerPed)
     end, index)
 end
 
-RegisterNetEvent('arp-druglabs:captureindex', function(index)
+RegisterNetEvent('th-druglabs:captureindex', function(index)
     currentIndex = index
 end)
 
@@ -272,7 +272,7 @@ for _, v in pairs(Config.Shells) do
                 label = 'Tilgå computeren',
                 distance = 3,
                 onSelect = function()
-                    ESX.TriggerServerCallback('arp-druglab:tjekpcaccess', function(CanAccess)
+                    ESX.TriggerServerCallback('th-druglab:tjekpcaccess', function(CanAccess)
                         if CanAccess then
                             local ped = PlayerPedId()
                             local pCoords = GetEntityCoords(ped)
@@ -321,7 +321,7 @@ RegisterCommand('testdruglab', function()
 end)
 
 function DrugLabPc(currentIndex)
-    ESX.TriggerServerCallback('arp-druglabs:level', function(data)
+    ESX.TriggerServerCallback('th-druglabs:level', function(data)
         for _, exp in pairs(data) do
             lib.registerContext({
                 id = 'druglab_pc',
@@ -374,7 +374,7 @@ function SettingsPc(currentIndex)
 
     local elements = {}
 
-    ESX.TriggerServerCallback('arp-druglabs:getpincodes', function(data)
+    ESX.TriggerServerCallback('th-druglabs:getpincodes', function(data)
         for _, data in pairs(data) do
             if data.id == currentIndex then
                 lib.registerContext({
@@ -479,7 +479,7 @@ end
 function GetMembers(index)
     local elements = {}
 
-    ESX.TriggerServerCallback('arp-druglabs:getmembers', function(data)
+    ESX.TriggerServerCallback('th-druglabs:getmembers', function(data)
         for _, v in pairs(data) do
             table.insert(elements, {
                 title = 'Medlem: '..v.name,
@@ -512,7 +512,7 @@ function MemberChange(name, identifier, index)
                 description = 'Slet personen fra computeren',
                 icon = 'circle-xmark',
                 onSelect = function()
-                    TriggerServerEvent('arp-druglab:removemember', identifier, index)
+                    TriggerServerEvent('th-druglab:removemember', identifier, index)
                 end
             },
             {
@@ -520,7 +520,7 @@ function MemberChange(name, identifier, index)
                 description = 'Giv personen adgang til settings',
                 icon = 'circle-xmark',
                 onSelect = function()
-                    -- TriggerServerEvent('arp-druglab:removemember', identifier, index)
+                    -- TriggerServerEvent('th-druglab:removemember', identifier, index)
                 end
             },
         }
@@ -534,7 +534,7 @@ function ClosestsPeople(index)
 
     if closestPlayerDistance < 3.0 then
         local ClosestsPlayer = GetPlayerServerId(closestPlayer)
-        ESX.TriggerServerCallback('arp-druglab:medlemmenu', function(data)
+        ESX.TriggerServerCallback('th-druglab:medlemmenu', function(data)
             local elements = {}
         
             for _, v in pairs(data) do
@@ -544,7 +544,7 @@ function ClosestsPeople(index)
                         description = 'Job: '..v.job..' \nRangering: '..v.jobGrade,
                         icon = 'user',
                         onSelect = function()
-                            TriggerServerEvent('arp-druglabs:addmember', v.name, v.identifier, index)
+                            TriggerServerEvent('th-druglabs:addmember', v.name, v.identifier, index)
                         end
                     })
                 end
@@ -585,16 +585,16 @@ function SkiftPin(pinkode, id)
     local nyKode = input[1]
 
 
-    ESX.TriggerServerCallback('arp-druglabs:skiftkode', function(data)
+    ESX.TriggerServerCallback('th-druglabs:skiftkode', function(data)
         notifyKodeSkiftet(nyKode)
     end, pinkode, id, nyKode)
 end
 
 function NyDruglabLevel(index, points)
-    ESX.TriggerServerCallback('arp-druglabs:getrightxp', function(output)
+    ESX.TriggerServerCallback('th-druglabs:getrightxp', function(output)
         local PlayerPed  = GetPlayerServerId(PlayerId())
         if output >= 100 then
-            TriggerServerEvent('arp-druglabs:resetpoints', PlayerPed, index)
+            TriggerServerEvent('th-druglabs:resetpoints', PlayerPed, index)
         end
     end, index, points)
 end

@@ -99,6 +99,10 @@ Config.Missions = {
     },
 }
 
+-- Logs
+
+Config.webhook = ''
+
 -- Notify styles
 Config.Notify = {
     position = 'right-top',

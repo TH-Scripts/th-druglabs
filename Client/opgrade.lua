@@ -4,6 +4,6 @@ function buy_opgrade(opgrade, index)
     elseif opgrade == "speed" then
         return
     elseif opgrade == "police" then
-        TriggerServerEvent('arp-druglab:callPolice', index)
+        TriggerServerEvent('th-druglab:callPolice', index)
     end
 end

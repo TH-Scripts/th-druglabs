@@ -10,11 +10,13 @@ RegisterCommand('createdruglab', function(source)
     local group = xPlayer.getGroup()
 
     if group == 'admin' then
-        TriggerClientEvent('arp-druglab:createdruglab', source)
+        TriggerClientEvent('th-druglab:createdruglab', source)
+    else
+        return TriggerClientEvent('ox_lib:notify', source, {title = 'Du har ikke adgang til dette!', position = Config.Notify.position, style = Config.Notify.Style})
     end
 end)
 
-ESX.RegisterServerCallback('arp-druglabs:getPlayers', function(source, cb)
+ESX.RegisterServerCallback('th-druglabs:getPlayers', function(source, cb)
     local playersData = {}
 
     local xPlayers = ESX.GetExtendedPlayers()
@@ -30,7 +32,7 @@ ESX.RegisterServerCallback('arp-druglabs:getPlayers', function(source, cb)
     cb(playersData)
 end)
 
-ESX.RegisterServerCallback('arp-druglab:medlemmenu', function(source, cb, closetsplayer)
+ESX.RegisterServerCallback('th-druglab:medlemmenu', function(source, cb, closetsplayer)
     local xPlayer = ESX.GetPlayerFromId(source)
 
     if not xPlayer then
@@ -62,7 +64,7 @@ ESX.RegisterServerCallback('arp-druglab:medlemmenu', function(source, cb, closet
 end)
 
 
-RegisterNetEvent('arp-druglab:creatingdruglab', function(pinkode, shell, PlayerId, identifier)
+RegisterNetEvent('th-druglab:creatingdruglab', function(pinkode, shell, PlayerId, identifier)
     local xPlayer = ESX.GetPlayerFromId(PlayerId)
     local name = xPlayer.getName()
     local coords = xPlayer.getCoords(false)
@@ -77,18 +79,18 @@ RegisterNetEvent('arp-druglab:creatingdruglab', function(pinkode, shell, PlayerI
 
 end)
 
-ESX.RegisterServerCallback('arp-druglabs:getlocations', function(source, cb)
+ESX.RegisterServerCallback('th-druglabs:getlocations', function(source, cb)
     local table = MySQL.query.await('SELECT id, coords FROM druglabs')
     cb(table)
 end)
 
-ESX.RegisterServerCallback('arp-druglabs:getpincodes', function(source, cb)
+ESX.RegisterServerCallback('th-druglabs:getpincodes', function(source, cb)
     local table = MySQL.query.await('SELECT id, pinkode, coords FROM druglabs')
     cb(table)
 end)
 
 
-ESX.RegisterServerCallback('arp-druglabs:getshell', function(source, cb, index)
+ESX.RegisterServerCallback('th-druglabs:getshell', function(source, cb, index)
     local response = MySQL.query.await('SELECT `shell` FROM `druglabs` WHERE `id` = ?', {
         index
     })
@@ -102,17 +104,17 @@ ESX.RegisterServerCallback('arp-druglabs:getshell', function(source, cb, index)
     end
 end)
 
-RegisterNetEvent('arp-druglabs:enterrouting', function(index, PlayerId)
+RegisterNetEvent('th-druglabs:enterrouting', function(index, PlayerId)
     SetPlayerRoutingBucket(PlayerId, index)
 end)
 
-RegisterNetEvent('arp-druglabs:exitrouting', function(PlayerId)
+RegisterNetEvent('th-druglabs:exitrouting', function(PlayerId)
     SetPlayerRoutingBucket(PlayerId, 0)
 
 end)
 
 
-ESX.RegisterServerCallback('arp-druglabs:gotindex', function(source, cb, index)
+ESX.RegisterServerCallback('th-druglabs:gotindex', function(source, cb, index)
     local response = MySQL.query.await('SELECT `coords` FROM `druglabs` WHERE `id` = ?', {
         index
     })
@@ -126,7 +128,7 @@ ESX.RegisterServerCallback('arp-druglabs:gotindex', function(source, cb, index)
     end
 end)
 
-ESX.RegisterServerCallback('arp-druglabs:skiftkode', function(source, cb, pinkode, id, nyKode)
+ESX.RegisterServerCallback('th-druglabs:skiftkode', function(source, cb, pinkode, id, nyKode)
     local xPlayer = ESX.GetPlayerFromId(source)
 
     if not xPlayer then
@@ -141,7 +143,7 @@ ESX.RegisterServerCallback('arp-druglabs:skiftkode', function(source, cb, pinkod
 
 end)
 
-ESX.RegisterServerCallback('arp-druglabs:level', function(source, cb, id)
+ESX.RegisterServerCallback('th-druglabs:level', function(source, cb, id)
     local result = MySQL.query.await('SELECT exp, lvl FROM `druglabs` WHERE id = ?', {
         id
     })
@@ -149,7 +151,7 @@ ESX.RegisterServerCallback('arp-druglabs:level', function(source, cb, id)
     cb(result)
 end)
 
-RegisterNetEvent('arp-druglab:reward', function(mission, ped, point)
+RegisterNetEvent('th-druglab:reward', function(mission, ped, point)
     local xPlayer = ESX.GetPlayerFromId(ped)
 
     if not xPlayer then
@@ -192,7 +194,7 @@ RegisterNetEvent('arp-druglab:reward', function(mission, ped, point)
     end
 end)
 
-ESX.RegisterServerCallback('arp-druglabs:tjeklockpick', function(source, cb)
+ESX.RegisterServerCallback('th-druglabs:tjeklockpick', function(source, cb)
     local xPlayer = ESX.GetPlayerFromId(source)
 
     if not xPlayer then
@@ -211,7 +213,7 @@ ESX.RegisterServerCallback('arp-druglabs:tjeklockpick', function(source, cb)
 end)
 
 
-RegisterNetEvent('arp-druglabs:resetpoints', function(PlayerPed, index)
+RegisterNetEvent('th-druglabs:resetpoints', function(PlayerPed, index)
     xPlayer = ESX.GetPlayerFromId(PlayerPed)
 
     if not xPlayer then
@@ -241,7 +243,7 @@ RegisterNetEvent('arp-druglabs:resetpoints', function(PlayerPed, index)
 
 end)
 
-ESX.RegisterServerCallback('arp-druglabs:tjekmoney', function(source, cb, price, ped)
+ESX.RegisterServerCallback('th-druglabs:tjekmoney', function(source, cb, price, ped)
     local xPlayer = ESX.GetPlayerFromId(source)
     local playerBank = xPlayer.getAccount('bank').money
 
@@ -268,7 +270,7 @@ ESX.RegisterServerCallback('arp-druglabs:tjekmoney', function(source, cb, price,
 end)
 
 
-ESX.RegisterServerCallback('arp-druglabs:getrightxp', function(source, cb, index, points)
+ESX.RegisterServerCallback('th-druglabs:getrightxp', function(source, cb, index, points)
 
     local output = MySQL.query.await('SELECT exp FROM `druglabs` WHERE id = ?', {
         index
@@ -285,7 +287,7 @@ ESX.RegisterServerCallback('arp-druglabs:getrightxp', function(source, cb, index
     
 end)
 
-ESX.RegisterServerCallback('arp-druglabs:checkCooldown', function(source, cb, index)
+ESX.RegisterServerCallback('th-druglabs:checkCooldown', function(source, cb, index)
     local getTimer = MySQL.query.await('SELECT cooldown, id FROM druglabs WHERE id = ?', {
         index
     })
@@ -300,13 +302,13 @@ ESX.RegisterServerCallback('arp-druglabs:checkCooldown', function(source, cb, in
     end
 end)
 
-RegisterNetEvent('arp-druglabs:triggercooldown', function(index)
+RegisterNetEvent('th-druglabs:triggercooldown', function(index)
     MySQL.update.await('UPDATE druglabs SET cooldown = 1 WHERE id = ?', {
         index
     })
 end)
 
-ESX.RegisterServerCallback('arp-druglab:tjekpcaccess', function(source, cb, index)
+ESX.RegisterServerCallback('th-druglab:tjekpcaccess', function(source, cb, index)
     local access = MySQL.query.await('SELECT owner, members FROM druglabs WHERE id = ?', {
         index
     })
@@ -323,12 +325,12 @@ ESX.RegisterServerCallback('arp-druglab:tjekpcaccess', function(source, cb, inde
 
 end)
 
-RegisterNetEvent('arp-druglabs:addmember', function(name, identifier, currentindex)
+RegisterNetEvent('th-druglabs:addmember', function(name, identifier, currentindex)
     local data = json.encode({identifier, name})
     MySQL.Async.execute('UPDATE druglabs SET members = ? WHERE id = ?', {data, currentindex})
 end)
 
-RegisterNetEvent('arp-druglab:removemember', function(identifier, currentindex)
+RegisterNetEvent('th-druglab:removemember', function(identifier, currentindex)
     
     MySQL.Async.fetchScalar('SELECT members FROM druglabs WHERE id = ?', {index}, function(membersJson)
         if membersJson then
@@ -348,7 +350,7 @@ RegisterNetEvent('arp-druglab:removemember', function(identifier, currentindex)
 end)
 
 
-ESX.RegisterServerCallback('arp-druglabs:getmembers', function(source, cb, index)
+ESX.RegisterServerCallback('th-druglabs:getmembers', function(source, cb, index)
     local xPlayer = ESX.GetPlayerFromId(source) 
 
     MySQL.Async.fetchScalar('SELECT members FROM druglabs WHERE id = ?', {index}, function(membersJson)
