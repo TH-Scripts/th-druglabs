@@ -5,5 +5,7 @@ CREATE TABLE IF NOT EXISTS `druglabs` (
   `lvl` varchar(50) DEFAULT NULL,
   `shell` varchar(50) DEFAULT NULL,
   `exp` int(100) DEFAULT NULL,
+  `speed` tinyint() DEFAULT 0,
+  `police` tinyint DEFAULT 0,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=28 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
