@@ -15,7 +15,7 @@ RegisterCommand('createdruglab', function(source)
         return TriggerClientEvent('ox_lib:notify', source, {title = 'Du har ikke adgang til dette!', position = Config.Notify.position, style = Config.Notify.Style})
     end
 
-    logs('Druglab oprettet', 'En spiller har lige oprettet et druglab', footer)
+    logs('Druglab oprettet', 'En spiller har lige oprettet et druglab', 'TH-Development @ 2024')
 end)
 
 ESX.RegisterServerCallback('th-druglabs:getPlayers', function(source, cb)
