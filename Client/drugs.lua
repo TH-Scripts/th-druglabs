@@ -1,1 +1,3 @@
-print('Kom tilbage')
+RegisterCommand('gamebuild', function()
+    print(GetGameBuildNumber())
+end)

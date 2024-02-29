@@ -40,8 +40,8 @@ Config.Shells = {
 Config.Missions = {
     PEDModel = 'g_m_y_ballaorig_01',
     VehicleSpawnName = 'burrito3',
-    Minigame = 'pure_minigame', -- "pure_minigame" (https://github.com/purescripts-fivem/pure-minigames) -- "ox" ox_lib skillcheck
-    useT1ger = true, -- Bruger du T1ger_keys?
+    Minigame = 'ox', -- "pure_minigame" (https://github.com/purescripts-fivem/pure-minigames) -- "ox" ox_lib skillcheck
+    useT1ger = false, -- Bruger du T1ger_keys?
     VehicleDespawn = 5, -- minutter
     Item = 'lockpick', --Itemet der skal bruges, for at kunne hacke køretøjet
 

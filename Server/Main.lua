@@ -355,19 +355,47 @@ end)
 ESX.RegisterServerCallback('th-druglabs:getmembers', function(source, cb, index)
     local xPlayer = ESX.GetPlayerFromId(source) 
 
-    MySQL.Async.fetchScalar('SELECT members FROM druglabs WHERE id = ?', {index}, function(membersJson)
-        if membersJson then
-            local members = json.decode(membersJson)
+    -- MySQL.Async.fetchScalar('SELECT members FROM druglabs WHERE id = ?', {index}, function(membersJson)
+    --     if membersJson then
+    --         local members = json.decode(membersJson)
 
-            local data = {}
+    --         local data = {}
 
-            table.insert(data, {
-                identifier = members[1],
-                name = members[2]
-            })
+    --         table.insert(data, {
+    --             identifier = members[1],
+    --             name = members[2]
+    --         })
 
-            cb(data)
-        end
-    end)
+    --         cb(data)
+    --     end
+    -- end)
+    local data = {}
+    local list = MySQL.query.await('SELECT * FROM druglabs-members WHERE gang = ?', {
+        xPlayer.getJob().name
+    })
+
+    for _,v in pairs(list) do
+        table.insert(data, {
+            name = v.name,
+            isBoss = v.isBoss,
+            identifier = v.license
+        })
+    end
+    cb(data)
 end)
 
+
+AddEventHandler("onResourceStart", function(resourcename)
+    if not resourcename == 'th-druglabs' then
+        return
+    else
+        local coke  = CreateObject(`shell_coke2`, 910.3247, -3091.1299, -146.5903)
+        FreezeEntityPosition(coke, true)
+        
+        local meth  = CreateObject(`shell_meth`, 649.0597, -2970.1235, -195.8800)
+        FreezeEntityPosition(meth, true)
+        
+        local weed  = CreateObject(`shell_weed2`, 733.2026, -2152.4561, -82.5409)
+        FreezeEntityPosition(weed, true)
+    end
+end)
