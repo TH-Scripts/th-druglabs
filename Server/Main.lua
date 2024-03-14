@@ -383,19 +383,3 @@ ESX.RegisterServerCallback('th-druglabs:getmembers', function(source, cb, index)
     end
     cb(data)
 end)
-
-
-AddEventHandler("onResourceStart", function(resourcename)
-    if not resourcename == 'th-druglabs' then
-        return
-    else
-        local coke  = CreateObject(`shell_coke2`, 910.3247, -3091.1299, -146.5903)
-        FreezeEntityPosition(coke, true)
-        
-        local meth  = CreateObject(`shell_meth`, 649.0597, -2970.1235, -195.8800)
-        FreezeEntityPosition(meth, true)
-        
-        local weed  = CreateObject(`shell_weed2`, 733.2026, -2152.4561, -82.5409)
-        FreezeEntityPosition(weed, true)
-    end
-end)
