@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS `druglabs` (
 ) ENGINE=InnoDB AUTO_INCREMENT=28 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 CREATE TABLE IF NOT EXISTS `druglabs-members` (
-  `license` varchar(30) DEFAULT NULL,
+  `license` varchar(50) DEFAULT NULL,
   `gang` varchar(20) DEFAULT NULL,
   `name` varchar(30) DEFAULT NULL,
   `isBoss` tinyint DEFAULT 0,

@@ -331,7 +331,7 @@ for _, v in pairs(Config.Shells) do
 end
 
 RegisterCommand('testdruglab', function()
-    DrugLabPc(34)
+    DrugLabPc(31)
 end)
 
 function DrugLabPc(currentIndex)
