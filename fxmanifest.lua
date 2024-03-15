@@ -1,7 +1,7 @@
 fx_version 'cerulean'
 
 game 'gta5'
-description 'TH - Druglabs'
+description 'ARP - Druglabs'
 version '1.10.2'
 lua54 'yes'
 

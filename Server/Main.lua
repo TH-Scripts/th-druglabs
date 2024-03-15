@@ -1,4 +1,7 @@
 -- skal laves til ejendomsmægler
+local ox_inventory = exports.ox_inventory
+
+
 
 AddEventHandler('onResourceStop', function()
     MySQL.update.await('UPDATE druglabs SET cooldown = 0')
@@ -10,15 +13,66 @@ RegisterCommand('createdruglab', function(source)
     local group = xPlayer.getGroup()
 
     if group == 'admin' then
-        TriggerClientEvent('th-druglab:createdruglab', source)
-    else
-        return TriggerClientEvent('ox_lib:notify', source, {title = 'Du har ikke adgang til dette!', position = Config.Notify.position, style = Config.Notify.Style})
+        TriggerClientEvent('arp-druglab:createdruglab', source)
     end
-
-    logs('Druglab oprettet', 'En spiller har lige oprettet et druglab', 'TH-Development @ 2024')
 end)
 
-ESX.RegisterServerCallback('th-druglabs:getPlayers', function(source, cb)
+ESX.RegisterServerCallback('arp-druglab:tjekOmdanItem', function(source, cb, value, access)
+    local xPlayer = ESX.GetPlayerFromId(source)
+    local randomTake = math.random(2,3)
+    local item
+
+    if not xPlayer or not access == 'access' then
+        return
+    end
+    
+    if value == 'coke' then
+        item = exports.ox_inventory:GetItem(1, Config.Shells.CokeShell.Omdan.omdanItem)
+    elseif value == 'hash' then
+        item = exports.ox_inventory:GetItem(1, Config.Shells.HashShell.Omdan.omdanItem)
+    elseif value == 'meth' then
+        item = exports.ox_inventory:GetItem(1, Config.Shells.MethShell.Omdan.omdanItem)
+    end
+
+    print(item.count)
+
+    if item.count >= randomTake then
+        cb(true)
+        print('works')
+    else
+        cb(false)
+        print('works, false')
+    end
+
+
+    
+
+end)
+
+RegisterNetEvent('arp-druglab:giveItem', function(value, omdan, status)
+    local xPlayer = ESX.GetPlayerFromId(source)
+    
+    if not access == true and status == 'success' or status == 'failed' then
+        return
+    end
+
+
+
+    if value == Config.Shells.HashShell.value then
+        xPlayer.addInventoryItem(Config.Shells.HashShell.Omdan.omdanModtag, math.random(1,2))
+        xPlayer.removeInventoryItem(Config.Shells.HashShell.Omdan.omdanItem, math.random(2,3))
+    elseif value == Config.Shells.MethShell.value then
+        xPlayer.addInventoryItem(Config.Shells.MethShell.Omdan.omdanModtag, math.random(2,3))
+        xPlayer.removeInventoryItem(Config.Shells.MethShell.Omdan.omdanItem, math.random(1,2))
+
+    elseif value == Config.Shells.CokeShell.value then
+        xPlayer.addInventoryItem(Config.Shells.CokeShell.Omdan.omdanModtag, math.random(2,3))
+        xPlayer.removeInventoryItem(Config.Shells.CokeShell.Omdan.omdanItem, math.random(1,2))
+    end
+end)
+
+
+ESX.RegisterServerCallback('arp-druglabs:getPlayers', function(source, cb)
     local playersData = {}
 
     local xPlayers = ESX.GetExtendedPlayers()
@@ -34,39 +88,38 @@ ESX.RegisterServerCallback('th-druglabs:getPlayers', function(source, cb)
     cb(playersData)
 end)
 
-ESX.RegisterServerCallback('th-druglab:medlemmenu', function(source, cb, closetsplayer)
-    local xPlayer = ESX.GetPlayerFromId(source)
+-- ESX.RegisterServerCallback('arp-druglab:medlemmenu', function(source, cb, closetsplayer)
+--     local xPlayer = ESX.GetPlayerFromId(source)
 
-    if not xPlayer then
-        return
-    end
+--     if not xPlayer then
+--         return
+--     end
 
-    local xTarget = ESX.GetPlayerFromId(closetsplayer)
+--     local xTarget = ESX.GetPlayerFromId(closetsplayer)
 
-    if xTarget then
-        print("xTarget Name: " .. tostring(xTarget.getName()))
+--     if xTarget then
 
-        local players = {}
+--         local players = {}
 
-        table.insert(players, {
-            source = xTarget.source,
-            identifier = xTarget.identifier,
-            job = xTarget.getJob().grade_label,
-            jobGrade = xTarget.getJob().grade_name,
-            name = xTarget.name,
-            firstname = xTarget.get('firstName'),
-            lastname = xTarget.get('lastName'),
-        })
-
-
-        cb(players)
-    else
-        return
-    end
-end)
+--         table.insert(players, {
+--             source = xTarget.source,
+--             identifier = xTarget.identifier,
+--             job = xTarget.getJob().grade_label,
+--             jobGrade = xTarget.getJob().grade_name,
+--             name = xTarget.name,
+--             firstname = xTarget.get('firstName'),
+--             lastname = xTarget.get('lastName'),
+--         })
 
 
-RegisterNetEvent('th-druglab:creatingdruglab', function(pinkode, shell, PlayerId, identifier)
+--         cb(players)
+--     else
+--         return
+--     end
+-- end)
+
+
+RegisterNetEvent('arp-druglab:creatingdruglab', function(pinkode, shell, PlayerId, identifier)
     local xPlayer = ESX.GetPlayerFromId(PlayerId)
     local name = xPlayer.getName()
     local coords = xPlayer.getCoords(false)
@@ -81,18 +134,18 @@ RegisterNetEvent('th-druglab:creatingdruglab', function(pinkode, shell, PlayerId
 
 end)
 
-ESX.RegisterServerCallback('th-druglabs:getlocations', function(source, cb)
+ESX.RegisterServerCallback('arp-druglabs:getlocations', function(source, cb)
     local table = MySQL.query.await('SELECT id, coords FROM druglabs')
     cb(table)
 end)
 
-ESX.RegisterServerCallback('th-druglabs:getpincodes', function(source, cb)
-    local table = MySQL.query.await('SELECT id, pinkode, coords FROM druglabs')
+ESX.RegisterServerCallback('arp-druglabs:getpincodes', function(source, cb)
+    local table = MySQL.query.await('SELECT id, pinkode, coords, stash FROM druglabs')
     cb(table)
 end)
 
 
-ESX.RegisterServerCallback('th-druglabs:getshell', function(source, cb, index)
+ESX.RegisterServerCallback('arp-druglabs:getshell', function(source, cb, index)
     local response = MySQL.query.await('SELECT `shell` FROM `druglabs` WHERE `id` = ?', {
         index
     })
@@ -106,17 +159,29 @@ ESX.RegisterServerCallback('th-druglabs:getshell', function(source, cb, index)
     end
 end)
 
-RegisterNetEvent('th-druglabs:enterrouting', function(index, PlayerId)
+RegisterNetEvent('arp-druglabs:loadstash', function(index)
+    local id = json.encode(index)
+
+    for _,v in (Config.Stash) do
+        ox_inventory:RegisterStash(id, v.label, v.slots, v.weight)
+    end
+
+	Wait(500)
+
+	local inventory = ox_inventory:GetInventory({id = id})
+end)
+
+RegisterNetEvent('arp-druglabs:enterrouting', function(index, PlayerId)
     SetPlayerRoutingBucket(PlayerId, index)
 end)
 
-RegisterNetEvent('th-druglabs:exitrouting', function(PlayerId)
+RegisterNetEvent('arp-druglabs:exitrouting', function(PlayerId)
     SetPlayerRoutingBucket(PlayerId, 0)
 
 end)
 
 
-ESX.RegisterServerCallback('th-druglabs:gotindex', function(source, cb, index)
+ESX.RegisterServerCallback('arp-druglabs:gotindex', function(source, cb, index)
     local response = MySQL.query.await('SELECT `coords` FROM `druglabs` WHERE `id` = ?', {
         index
     })
@@ -130,7 +195,7 @@ ESX.RegisterServerCallback('th-druglabs:gotindex', function(source, cb, index)
     end
 end)
 
-ESX.RegisterServerCallback('th-druglabs:skiftkode', function(source, cb, pinkode, id, nyKode)
+ESX.RegisterServerCallback('arp-druglabs:skiftkode', function(source, cb, pinkode, id, nyKode)
     local xPlayer = ESX.GetPlayerFromId(source)
 
     if not xPlayer then
@@ -141,19 +206,17 @@ ESX.RegisterServerCallback('th-druglabs:skiftkode', function(source, cb, pinkode
         nyKode, id
     })
     cb(update)
-
-
 end)
 
-ESX.RegisterServerCallback('th-druglabs:level', function(source, cb, id)
-    local result = MySQL.query.await('SELECT exp, lvl FROM `druglabs` WHERE id = ?', {
+ESX.RegisterServerCallback('arp-druglabs:level', function(source, cb, id)
+    local result = MySQL.query.await('SELECT exp, lvl, stash FROM `druglabs` WHERE id = ?', {
         id
     })
 
     cb(result)
 end)
 
-RegisterNetEvent('th-druglab:reward', function(mission, ped, point)
+RegisterNetEvent('arp-druglab:reward', function(mission, ped, point)
     local xPlayer = ESX.GetPlayerFromId(ped)
 
     if not xPlayer then
@@ -196,7 +259,7 @@ RegisterNetEvent('th-druglab:reward', function(mission, ped, point)
     end
 end)
 
-ESX.RegisterServerCallback('th-druglabs:tjeklockpick', function(source, cb)
+ESX.RegisterServerCallback('arp-druglabs:tjeklockpick', function(source, cb)
     local xPlayer = ESX.GetPlayerFromId(source)
 
     if not xPlayer then
@@ -215,7 +278,7 @@ ESX.RegisterServerCallback('th-druglabs:tjeklockpick', function(source, cb)
 end)
 
 
-RegisterNetEvent('th-druglabs:resetpoints', function(PlayerPed, index)
+RegisterNetEvent('arp-druglabs:resetpoints', function(PlayerPed, index)
     xPlayer = ESX.GetPlayerFromId(PlayerPed)
 
     if not xPlayer then
@@ -245,7 +308,7 @@ RegisterNetEvent('th-druglabs:resetpoints', function(PlayerPed, index)
 
 end)
 
-ESX.RegisterServerCallback('th-druglabs:tjekmoney', function(source, cb, price, ped)
+ESX.RegisterServerCallback('arp-druglabs:tjekmoney', function(source, cb, price, ped)
     local xPlayer = ESX.GetPlayerFromId(source)
     local playerBank = xPlayer.getAccount('bank').money
 
@@ -272,7 +335,7 @@ ESX.RegisterServerCallback('th-druglabs:tjekmoney', function(source, cb, price, 
 end)
 
 
-ESX.RegisterServerCallback('th-druglabs:getrightxp', function(source, cb, index, points)
+ESX.RegisterServerCallback('arp-druglabs:getrightxp', function(source, cb, index, points)
 
     local output = MySQL.query.await('SELECT exp FROM `druglabs` WHERE id = ?', {
         index
@@ -289,13 +352,12 @@ ESX.RegisterServerCallback('th-druglabs:getrightxp', function(source, cb, index,
     
 end)
 
-ESX.RegisterServerCallback('th-druglabs:checkCooldown', function(source, cb, index)
+ESX.RegisterServerCallback('arp-druglabs:checkCooldown', function(source, cb, index)
     local getTimer = MySQL.query.await('SELECT cooldown, id FROM druglabs WHERE id = ?', {
         index
     })
     
     for k,v in pairs(getTimer) do
-        print(v.cooldown)
         if v.cooldown == 0 then
             cb(true)
         else
@@ -304,18 +366,18 @@ ESX.RegisterServerCallback('th-druglabs:checkCooldown', function(source, cb, ind
     end
 end)
 
-RegisterNetEvent('th-druglabs:triggercooldown', function(index)
+RegisterNetEvent('arp-druglabs:triggercooldown', function(index)
     MySQL.update.await('UPDATE druglabs SET cooldown = 1 WHERE id = ?', {
         index
     })
 end)
 
-ESX.RegisterServerCallback('th-druglab:tjekpcaccess', function(source, cb, index)
-    local access = MySQL.query.await('SELECT owner, members FROM druglabs WHERE id = ?', {
+ESX.RegisterServerCallback('arp-druglab:tjekpcaccess', function(source, cb, index)
+    local xPlayer = ESX.GetPlayerFromId(source)
+    local access = MySQL.query.await('SELECT owner FROM druglabs WHERE id = ?', {
         index
     })
-    local xPlayer = ESX.GetPlayerFromId(source)
-    
+
     for _, v in pairs(access) do 
         if xPlayer.identifier == v.owner then
             cb(true)
@@ -323,63 +385,72 @@ ESX.RegisterServerCallback('th-druglab:tjekpcaccess', function(source, cb, index
             cb(false)
         end 
     end
+end)
+
+-- RegisterNetEvent('arp-druglabs:addmember', function(name, identifier, currentindex)
+--     local data = json.encode({identifier = identifier, name = name})
     
+--     MySQL.Async.fetchScalar('SELECT members FROM druglabs WHERE id = ?', {currentindex}, function(membersJson)
+--         local members = {}
 
-end)
+--         if membersJson then
+--             members = json.decode(membersJson)
+--         end
 
-RegisterNetEvent('th-druglabs:addmember', function(name, identifier, currentindex)
-    local data = json.encode({identifier, name})
-    MySQL.Async.execute('UPDATE druglabs SET members = ? WHERE id = ?', {data, currentindex})
-end)
-
-RegisterNetEvent('th-druglab:removemember', function(identifier, currentindex)
-    
-    MySQL.Async.fetchScalar('SELECT members FROM druglabs WHERE id = ?', {index}, function(membersJson)
-        if membersJson then
-            local members = json.decode(membersJson)
-
-            local data = {}
-
-            table.insert(data, {
-                identifier = members[1],
-                name = members[2]
-            })
-
-            cb(data)
-        end
-    end)
-
-end)
+--         if not members then
+--             members = {}
+--         end
+            
+--         table.insert(members, {identifier = identifier, name = name})
+        
+--         local updatedMembersJson = json.encode(members)
+--         MySQL.Async.execute('UPDATE druglabs SET members = ? WHERE id = ?', {updatedMembersJson, currentindex})
+--     end)
+-- end)
 
 
-ESX.RegisterServerCallback('th-druglabs:getmembers', function(source, cb, index)
-    local xPlayer = ESX.GetPlayerFromId(source) 
+-- RegisterNetEvent('arp-druglabs:removemember', function(name, identifier, currentindex)
+--     MySQL.Async.fetchScalar('SELECT members FROM druglabs WHERE id = ?', {currentindex}, function(membersJson)
+--         if membersJson then
+--             local members = json.decode(membersJson)
 
-    -- MySQL.Async.fetchScalar('SELECT members FROM druglabs WHERE id = ?', {index}, function(membersJson)
-    --     if membersJson then
-    --         local members = json.decode(membersJson)
+--             for i = #members, 1, -1 do
+--                 local memberData = members[i]
+--                 local memberIdentifier = memberData.identifier
+--                 local memberName = memberData.name
 
-    --         local data = {}
+--                 if memberName == name and memberIdentifier == identifier then
+--                     table.remove(members, i)
+--                 end
+--             end
 
-    --         table.insert(data, {
-    --             identifier = members[1],
-    --             name = members[2]
-    --         })
+--             local updatedMembersJson = json.encode(members)
+--             MySQL.Async.execute('UPDATE druglabs SET members = ? WHERE id = ?', {updatedMembersJson, currentindex})
+--         end
+--     end)
+-- end)
 
-    --         cb(data)
-    --     end
-    -- end)
-    local data = {}
-    local list = MySQL.query.await('SELECT * FROM druglabs-members WHERE gang = ?', {
-        xPlayer.getJob().name
-    })
+-- ESX.RegisterServerCallback('arp-druglabs:getmembers', function(source, cb, index)
+--     local xPlayer = ESX.GetPlayerFromId(source) 
 
-    for _,v in pairs(list) do
-        table.insert(data, {
-            name = v.name,
-            isBoss = v.isBoss,
-            identifier = v.license
-        })
-    end
-    cb(data)
-end)
+--     MySQL.Async.fetchScalar('SELECT members FROM druglabs WHERE id = ?', {index}, function(membersJson)
+--         if membersJson then
+--             local members = json.decode(membersJson)
+--             print(json.encode(members))
+
+
+--             local data = {}
+
+--             if not json.encode(members) == 'null' then
+--                 for _, memberData in pairs(members) do
+--                     print('hello')
+--                     table.insert(data, {
+--                         identifier = memberData.identifier,
+--                         name = memberData.name
+--                     })
+--                 end
+--             end 
+--             cb(data)
+--         end
+--     end)
+-- end)

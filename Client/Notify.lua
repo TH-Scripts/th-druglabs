@@ -123,3 +123,26 @@ function notifyNoPlayers()
         iconColor = '#C53030'
     })
 end
+function notifyNotItem()
+    lib.notify({
+        id = 'biler5',
+        title = 'Du har ikke det rigtige item',
+        position = Config.Notify.position,
+        style = Config.Notify.Style,
+        icon = 'circle-xmark',
+        iconColor = '#C53030'
+    })
+end
+
+function TextUi(text, icon, color)
+    lib.showTextUI(text, {
+        position = "right-center",
+        icon = icon,
+        iconColor = color,
+        style = {
+            borderRadius = 5,
+            backgroundColor = '#141517',
+            color = 'white'
+        }
+    })
+end

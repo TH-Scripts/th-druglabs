@@ -2,6 +2,13 @@ Config = {}
 
 Config.Ui = 'radial' -- 'radial' (ox_lib radial menu) -- 'text' (ox_lib textui)
 
+Config.Stash = {
+    label = 'Druglab',
+    slots = 100,
+    weight = 10000
+}
+Config.OmdanTimer = 10
+
 Config.Shells = {
 
     CokeShell = {
@@ -9,9 +16,15 @@ Config.Shells = {
         label = 'Kokain lab',
 
         -- Shell offsets
-        Udgang = vec3(904.2141, -3082.5073, -145.5523),
-        Computer = vec3(901.74, -3092.09, -145.55),
-        ComputerHeading = 85.9954
+        Udgang = vec3(1088.6115, -3187.4976, -38.9935),
+        Computer = vec3(1087.1422, -3194.3167, -38.9935),
+        ComputerHeading = 89.3487,
+
+        Omdan = {
+            omdanItem = 'cannabis', -- omdan itemet som der skal til
+            omdanModtag = 'bread', -- det omdan item du modtager
+            omdanLokation = vec3(1093.0486, -3194.8376, -38.993)
+        }
     },
 
     HashShell = {
@@ -19,9 +32,15 @@ Config.Shells = {
         label = 'Hash lab',
 
         -- Shell offsets
-        Udgang = vec3(751.0382, -2140.6453, -81.5219),
-        Computer = vec3(729.82, -2156.19, -80.52),
-        ComputerHeading = 271.4190
+        Udgang = vec3(1066.3046, -3183.4375, -39.1636),
+        Computer = vec3(1044.5735, -3194.8650, -38.1579),
+        ComputerHeading = 271.3054,
+
+        Omdan = {
+            omdanItem = 'cannabis', -- omdan itemet som der skal tilw
+            omdanModtag = 'bread', -- det omdan item du modtager
+            omdanLokation = vec3(1036.3877, -3203.7412, -38.1733)
+        }
     },
 
     MethShell = {
@@ -29,9 +48,15 @@ Config.Shells = {
         label = 'Meth lab',
 
         -- Shell offsets
-        Udgang = vec3(642.7589, -2961.4731, -194.8713),
-        Computer = vec3(640.5, -2968.71, -194.87),
-        ComputerHeading = 96.8575
+        Udgang = vec3(997.0485, -3200.6912, -36.3936),
+        Computer = vec3(1001.9426, -3194.8772, -38.9931),
+        ComputerHeading = 6.8954,
+
+        Omdan = {
+            omdanItem = 'cannabis', -- omdan itemet som der skal til
+            omdanModtag = 'bread', -- det omdan item du modtager
+            omdanLokation = vec3(1009.7867, -3195.2495, -38.9931)
+        }
     },
 
 }
@@ -40,8 +65,8 @@ Config.Shells = {
 Config.Missions = {
     PEDModel = 'g_m_y_ballaorig_01',
     VehicleSpawnName = 'burrito3',
-    Minigame = 'ox', -- "pure_minigame" (https://github.com/purescripts-fivem/pure-minigames) -- "ox" ox_lib skillcheck
-    useT1ger = false, -- Bruger du T1ger_keys?
+    Minigame = 'pure_minigame', -- "pure_minigame" (https://github.com/purescripts-fivem/pure-minigames) -- "ox" ox_lib skillcheck
+    useT1ger = true, -- Bruger du T1ger_keys?
     VehicleDespawn = 5, -- minutter
     Item = 'lockpick', --Itemet der skal bruges, for at kunne hacke køretøjet
 
@@ -98,10 +123,6 @@ Config.Missions = {
         }
     },
 }
-
--- Logs
-
-Config.webhook = ''
 
 -- Notify styles
 Config.Notify = {

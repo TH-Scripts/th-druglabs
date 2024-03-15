@@ -2,6 +2,10 @@ local DruglabLocation
 local RadialIsShowing = false
 local currentIndex = nil
 local isBoss = false
+local isInDruglab
+local ox_inventory = exports.ox_inventory
+local omdan = ''
+
 
 RegisterNetEvent('esx:setJob')
 AddEventHandler('esx:setJob', function(job)
@@ -10,32 +14,6 @@ AddEventHandler('esx:setJob', function(job)
     else
         isBoss = true
     end
-end)
-
--- shells
-Citizen.CreateThread(function()
-    local req = RequestModel('shell_coke2')
-    print(req)
-
-    while not HasModelLoaded(req) do
-        Wait(0)
-    end
-
-    if DoesEntityExist(req) then
-        local coke  = CreateObject(req, 910.3247, -3091.1299, -146.5903)
-        FreezeEntityPosition(coke, true)
-        print(coke)
-    else
-        return print('Det her lort virker ikke :(')
-    end
-    
-    -- local meth  = CreateObject(`shell_meth`, 649.0597, -2970.1235, -195.8800)
-    -- FreezeEntityPosition(meth, true)
-    -- print(meth)
-    
-    -- local weed  = CreateObject(`shell_weed2`, 733.2026, -2152.4561, -82.5409)
-    -- FreezeEntityPosition(weed, true)
-    -- print(weed)
 end)
 
 
@@ -133,10 +111,49 @@ function onExitLab(self)
     end
 end
 
+function OmdanEnter(self)
+    if Config.Ui == 'radial' then
+        if not RadialIsShowing then
+            lib.addRadialItem({
+                id = 'omdan_enter',
+                icon = 'recycle',
+                label = 'Omdan',
+                onSelect = function()
+                    StartOmdannelse(self.index)
+                end
+            })
+            RadialIsShowing = true
+        end
+    elseif Config.Ui == 'text' then
+        lib.showTextUI('[E] - Omdan')
+        Citizen.CreateThread(function()
+            while true do
+                Wait(1)
+                if IsControlJustPressed(0, 38) then
+                    Wait(100)
+                    StartOmdannelse(self.index)
+                    break
+                end
+            end
+        end)
+    end
+end
+
+function OmdanExit(self)
+    if Config.Ui == 'radial' then
+        if RadialIsShowing then
+            lib.removeRadialItem('omdan_enter')
+            RadialIsShowing = false
+        end
+    elseif Config.Ui == 'text' then
+        lib.hideTextUI()
+    end
+end
+
 Citizen.CreateThread(function()
     while true do
         Citizen.Wait(1000)
-        ESX.TriggerServerCallback('th-druglabs:getlocations', function(data)
+        ESX.TriggerServerCallback('arp-druglabs:getlocations', function(data)
             if not RadialIsShowing then   
                 for _, v in pairs(data) do
                     local coords = v.coords
@@ -151,7 +168,35 @@ Citizen.CreateThread(function()
             end
         end)
 
-        ESX.TriggerServerCallback('th-druglabs:getpincodes', function(data)
+        for _, v in pairs(Config.Shells) do
+            if v.value == Config.Shells.HashShell.value then
+                lib.points.new({
+                    index = Config.Shells.HashShell.value,
+                    coords = Config.Shells.HashShell.Omdan.omdanLokation,
+                    distance = 2,
+                    onEnter = OmdanEnter,
+                    onExit = OmdanExit
+                })
+            elseif v.value == Config.Shells.CokeShell.value then
+                lib.points.new({
+                    index = Config.Shells.CokeShell.value,
+                    coords = Config.Shells.CokeShell.Omdan.omdanLokation,
+                    distance = 2,
+                    onEnter = OmdanEnter,
+                    onExit = OmdanExit
+                })
+            elseif v.value == Config.Shells.MethShell.value then
+                lib.points.new({
+                    index = Config.Shells.MethShell.value,
+                    coords = Config.Shells.MethShell.Omdan.omdanLokation,
+                    distance = 2,
+                    onEnter = OmdanEnter,
+                    onExit = OmdanExit
+                })
+            end
+        end
+
+        ESX.TriggerServerCallback('arp-druglabs:getpincodes', function(data)
             if not RadialIsShowing then   
                 for _, v in pairs(data) do
                     for _, v2 in pairs(Config.Shells) do
@@ -169,8 +214,123 @@ Citizen.CreateThread(function()
     end
 end)
 
-RegisterNetEvent('th-druglab:createdruglab', function()
-    ESX.TriggerServerCallback('th-druglabs:getPlayers', function(data)
+function EnterDruglab(index)
+    local input = lib.inputDialog('', {
+        {type = 'number', label = 'Pin-kode', description = 'Skriv den korrekte pinkode til labbet', icon = 'hashtag', max = 9999},
+    })
+    local ped = PlayerPedId()
+
+    if input == nil then
+        return
+    end
+
+    ESX.TriggerServerCallback('arp-druglabs:getpincodes', function(data)
+       for _, v in pairs(data) do
+        if index == v.id then
+            if input[1] == v.pinkode then
+                local PlayerPed  = GetPlayerServerId(PlayerId())
+                ESX.TriggerServerCallback('arp-druglabs:getshell', function(data)
+                    if data == Config.Shells.CokeShell.value then
+                        SetEntityCoords(ped, Config.Shells.CokeShell.Udgang)
+                    elseif data == Config.Shells.HashShell.value then
+                        SetEntityCoords(ped, Config.Shells.HashShell.Udgang)
+                    elseif data == Config.Shells.MethShell.value then
+                        SetEntityCoords(ped, Config.Shells.MethShell.Udgang)
+                    end
+                    TriggerServerEvent('arp-druglabs:enterrouting', index, PlayerPed)
+                    TriggerEvent('arp-druglabs:captureindex', index)
+                    if v.stash == 'false' then
+                        TriggerServerEvent('arp-druglabs:loadstash', index)
+                        print('stashed created')
+                    end
+                end, index)
+            else
+                notifyForkertKode()
+            end
+        end
+       end
+    end)
+end
+
+function StartOmdannelse(value) 
+    omdan = true
+    local player = PlayerPedId()
+
+    if omdan then
+        lib.removeRadialItem('omdan_enter')
+        lib.addRadialItem({
+            id = 'omdan_exit',
+            icon = 'circle-xmark',
+            label = 'Stop Omdan',
+            onSelect = function()
+                omdan = false
+                Wait(100)
+                FreezeEntityPosition(player, false)
+                ExecuteCommand('e c')
+                lib.hideTextUI()
+                lib.removeRadialItem('omdan_exit')
+            end
+        })
+    end
+    ExecuteCommand('e parkingmeter')
+    Citizen.CreateThread(function()
+        while true do
+            Citizen.Wait(500)
+            if omdan then
+                local player = PlayerPedId()
+                FreezeEntityPosition(player, true)
+                TextUi('Stop omdan', 'recycle', '#06915a')
+                Wait(math.random(1000, 5000))
+                local success = lib.skillCheck({'easy', 'easy'}, {'g'})
+                ESX.TriggerServerCallback('arp-druglab:tjekOmdanItem', function(gotItem)
+                    if gotItem then
+                        if success then
+                            TriggerServerEvent('arp-druglab:giveItem', value, omdan, 'success')
+                            print('success')
+                        else
+                            TriggerServerEvent('arp-druglab:giveItem', value, omdan, 'failed')
+                        end
+                    else
+                        omdan = false
+                        Wait(100)
+                        FreezeEntityPosition(player, false)
+                        ExecuteCommand('e c')
+                        lib.hideTextUI()
+                        notifyNotItem()
+                        lib.removeRadialItem('omdan_exit')
+                    end
+                end, value, omdan)
+            end
+        end
+    end)
+end
+    
+function ExitDrugLab(index)
+    local ped = PlayerPedId()
+    local PlayerPed  = GetPlayerServerId(PlayerId())
+        ESX.TriggerServerCallback('arp-druglabs:gotindex', function(index)
+
+            function extractCoordinates(coordsStr)
+                local coords = json.decode(coordsStr)
+                local x = coords.x or 0
+                local y = coords.y or 0
+                local z = coords.z or 0
+                return x, y, z
+            end
+            
+            local vCoordsStr = index
+            local xValue, yValue, zValue = extractCoordinates(vCoordsStr)
+            SetEntityCoords(ped, xValue, yValue, zValue)
+            TriggerServerEvent('arp-druglabs:exitrouting', PlayerPed)
+    end, index)
+end
+
+RegisterNetEvent('arp-druglabs:captureindex', function(index)
+    currentIndex = index
+end)
+
+RegisterNetEvent('arp-druglab:createdruglab', function()
+    ESX.TriggerServerCallback('arp-druglabs:getPlayers', function(data)
         local playerOptions = {}
         local shellOptions = {}
     
@@ -185,9 +345,9 @@ RegisterNetEvent('th-druglab:createdruglab', function()
     
     
         local input = lib.inputDialog('Lav et druglab', {
-            {type = 'select', label = 'Vælg et druglab - shell', options = shellOptions, icon = 'home'},
-            {type = 'number', label = 'Pin-kode', description = 'Skriv den midlertige pinkode', icon = 'hashtag', max = 9999},
-            {type = 'select', label = 'Vælg ejeren', description = 'Vælg ejeren af druglabbet', options = playerOptions, icon = 'user'},
+            {type = 'select', label = 'Vælg et druglab - shell', options = shellOptions, icon = 'home', required = true},
+            {type = 'number', label = 'Pin-kode', description = 'Skriv den midlertige pinkode', icon = 'hashtag', max = 9999, required = true},
+            {type = 'select', label = 'Vælg ejeren', description = 'Vælg ejeren af druglabbet', options = playerOptions, icon = 'user', required = true},
             {type = 'checkbox', label = 'Nuværende coords som indgang', required = true},
         })
         
@@ -202,78 +362,17 @@ RegisterNetEvent('th-druglab:createdruglab', function()
         
         if input[1] == 'coke' then
             local lab = 'coke'
-            TriggerServerEvent('th-druglab:creatingdruglab', input[2], lab, PlayerPed, identifier)
+            TriggerServerEvent('arp-druglab:creatingdruglab', input[2], lab, PlayerPed, identifier)
         elseif input[1] == 'hash' then
             local lab = 'hash'
-            TriggerServerEvent('th-druglab:creatingdruglab', input[2], lab, PlayerPed, identifier)
+            TriggerServerEvent('arp-druglab:creatingdruglab', input[2], lab, PlayerPed, identifier)
         elseif input[1] == 'meth' then
             local lab = 'meth'
-            TriggerServerEvent('th-druglab:creatingdruglab', input[2], lab, PlayerPed, identifier)
+            TriggerServerEvent('arp-druglab:creatingdruglab', input[2], lab, PlayerPed, identifier)
         end
     
     end)
 end)
-
-function EnterDruglab(index)
-    local input = lib.inputDialog('', {
-        {type = 'number', label = 'Pin-kode', description = 'Skriv den korrekte pinkode til labbet', icon = 'hashtag', max = 9999},
-    })
-    local ped = PlayerPedId()
-
-    if input == nil then
-        return
-    end
-
-    ESX.TriggerServerCallback('th-druglabs:getpincodes', function(data)
-       for _, v in pairs(data) do
-        if index == v.id then
-            if input[1] == v.pinkode then
-                local PlayerPed  = GetPlayerServerId(PlayerId())
-                ESX.TriggerServerCallback('th-druglabs:getshell', function(data)
-                    if data == 'coke' then
-                        SetEntityCoords(ped, Config.Shells.CokeShell.Udgang)
-                    elseif data == 'hash' then
-                        SetEntityCoords(ped, Config.Shells.HashShell.Udgang)
-                    elseif data == 'meth' then
-                        SetEntityCoords(ped, Config.Shells.MethShell.Udgang)
-                    end
-                    TriggerServerEvent('th-druglabs:enterrouting', index, PlayerPed)
-                    TriggerEvent('th-druglabs:captureindex', index)
-                end, index)
-            else
-                notifyForkertKode()
-            end
-        end
-       end
-    end)
-       
-end
-
-function ExitDrugLab(index)
-    local ped = PlayerPedId()
-    local PlayerPed  = GetPlayerServerId(PlayerId())
-        ESX.TriggerServerCallback('th-druglabs:gotindex', function(index)
-
-            function extractCoordinates(coordsStr)
-                local coords = json.decode(coordsStr)
-                local x = coords.x or 0
-                local y = coords.y or 0
-                local z = coords.z or 0
-                return x, y, z
-            end
-            
-            -- Example usage:
-            local vCoordsStr = index
-            local xValue, yValue, zValue = extractCoordinates(vCoordsStr)
-            SetEntityCoords(ped, xValue, yValue, zValue)
-            TriggerServerEvent('th-druglabs:exitrouting', PlayerPed)
-    end, index)
-end
-
-RegisterNetEvent('th-druglabs:captureindex', function(index)
-    currentIndex = index
-end)
-
 
 for _, v in pairs(Config.Shells) do
     exports.ox_target:addSphereZone({
@@ -286,39 +385,22 @@ for _, v in pairs(Config.Shells) do
                 label = 'Tilgå computeren',
                 distance = 3,
                 onSelect = function()
-                    ESX.TriggerServerCallback('th-druglab:tjekpcaccess', function(CanAccess)
+                    ESX.TriggerServerCallback('arp-druglab:tjekpcaccess', function(CanAccess)
                         if CanAccess then
+                            print('virker')
                             local ped = PlayerPedId()
                             local pCoords = GetEntityCoords(ped)
                             local distance = #(pCoords - v.Computer)
                             if distance < 1 then
                                 FreezeEntityPosition(ped, true)
                                 ExecuteCommand('e type')
-                                if lib.progressCircle({
-                                    duration = 5000,
-                                    label = 'Tjekker legitimationsoplysninger',
-                                    position = 'bottom',
-                                    useWhileDead = false,
-                                    canCancel = true,
-                                    disable = {
-                                        car = true,
-                                    },
-                                }) then DrugLabPc(currentIndex) end
+                                DrugLabPc(currentIndex) 
                             else
                                 TaskGoStraightToCoord(ped, v.Computer, 0, -1, v.ComputerHeading, -1)
                                 Wait(2500)
                                 FreezeEntityPosition(ped, true)
                                 ExecuteCommand('e type')
-                                if lib.progressCircle({
-                                    duration = 5000,
-                                    label = 'Tjekker legitimationsoplysninger',
-                                    position = 'bottom',
-                                    useWhileDead = false,
-                                    canCancel = true,
-                                    disable = {
-                                        car = true,
-                                    },
-                                }) then DrugLabPc(currentIndex) end
+                                DrugLabPc(currentIndex)
                             end
                         else
                             notifyIngenAdgang()
@@ -331,11 +413,11 @@ for _, v in pairs(Config.Shells) do
 end
 
 RegisterCommand('testdruglab', function()
-    DrugLabPc(31)
+    DrugLabPc(46)
 end)
 
 function DrugLabPc(currentIndex)
-    ESX.TriggerServerCallback('th-druglabs:level', function(data)
+    ESX.TriggerServerCallback('arp-druglabs:level', function(data)
         for _, exp in pairs(data) do
             lib.registerContext({
                 id = 'druglab_pc',
@@ -366,6 +448,16 @@ function DrugLabPc(currentIndex)
                         end
                     },
                     {
+                        title = 'Stash',
+                        description = 'Tilgå dit druglab stash',
+                        icon = 'box-archive',
+                        onSelect = function()
+                            local stashOpen = json.encode(currentIndex)
+                            ox_inventory:openInventory('stash', {id=stashOpen})
+                            StopAnimation()
+                        end
+                    },
+                    {
                         title = 'Druglab settings',
                         icon = 'gear',
                         iconAnimation = 'spin',
@@ -384,11 +476,12 @@ function DrugLabPc(currentIndex)
     end, currentIndex)
 end
 
+
 function SettingsPc(currentIndex)
 
     local elements = {}
 
-    ESX.TriggerServerCallback('th-druglabs:getpincodes', function(data)
+    ESX.TriggerServerCallback('arp-druglabs:getpincodes', function(data)
         for _, data in pairs(data) do
             if data.id == currentIndex then
                 lib.registerContext({
@@ -418,163 +511,37 @@ function SettingsPc(currentIndex)
                                 Medlemmer(currentIndex)
                             end
                         },
-                        {
-                            title = 'Opgraderinger',
-                            description = 'Opgrader dit druglab',
-                            icon = 'circle-up',
-                            onSelect = function()
-                                opgradePc(currentIndex)
-                            end
-                        }
                     }
                 })
             end
         end
         lib.showContext('druglab_settings')
-     end)
-
+    end)
 end
 
-function opgradePC(index)
+function Medlemmer(index)
     lib.registerContext({
-        id = 'opgrade',
-        title = 'Druglab - Opgraderinger',
+        id = 'members',
+        title = 'Medlemmer',
         options = {
             {
-                title = 'Politi-opgradering',
-                description = 'Tilkøb mulighed for at få en besked, når politiet begynder at raide dit lab',
-                icon = 'police',
+                title = 'Tilføj nyt medlem',
                 onSelect = function()
-                    local input = lib.inputDialog('Angiv darkchat kanal', {
-                        {type = 'input', label = 'Angiv navnet på jers darkchat', description = 'Det er vigtigt, at dette er 100% det samme, som jeres darkchat kanal'},
-                    })
-
-                    buy_opgrade('police', input[1])
+                    addMember(index)
+                end
+            },
+            {
+                title = 'Medlemsliste',
+                onSelect = function()
+                    GetMembers(index)
                 end
             }
         }
     })
 end
 
-function Medlemmer(index)
-    lib.registerContext({
-        id = 'medlemmer',
-        title = 'Medlem settings',
-        menu = 'druglab_pc',
-        onExit = function()
-            local ped = PlayerPedId()
-            FreezeEntityPosition(ped, false)
-            ExecuteCommand('e c')
-        end,
-        options = {
-            {
-                title = 'Tilføj medlemmer',
-                description = 'Tilføj et medlem til dit druglab',
-                icon = 'plus',
-                iconAnimation = 'shake',
-                onSelect = function()
-                    ClosestsPeople(index)
-                end
-            },
-            {
-                title = 'Medlemmer',
-                description = 'Se alle dine medlemmer',
-                icon = 'list',
-                onSelect = function()
-                    GetMembers(index)
-                end
-            },
-        }
-    })
-    lib.showContext('medlemmer')
-end
-
-
-function GetMembers(index)
-    local elements = {}
-
-    ESX.TriggerServerCallback('th-druglabs:getmembers', function(data)
-        for _, v in pairs(data) do
-            table.insert(elements, {
-                title = 'Medlem: '..v.name,
-                description = "Person's identifier: "..v.identifier,
-                icon = 'user',
-                onSelect = function()
-                    MemberChange(v.identifier, v.name, index)
-                end
-            })
-        end
-
-        lib.registerContext({
-            id = 'see_members',
-            title = 'Medlemmer',
-            options = elements
-        })
+function addMember(index)
     
-        lib.showContext('see_members')
-
-    end, index)
-end
-
-function MemberChange(name, identifier, index)
-    lib.registerContext({
-        id = 'change_members',
-        title = 'Navn: '..name,
-        options = {
-            {
-                title = 'Fjern '..name,
-                description = 'Slet personen fra computeren',
-                icon = 'circle-xmark',
-                onSelect = function()
-                    TriggerServerEvent('th-druglab:removemember', identifier, index)
-                end
-            },
-            {
-                title = 'Adgang',
-                description = 'Giv personen adgang til settings',
-                icon = 'circle-xmark',
-                onSelect = function()
-                    -- TriggerServerEvent('th-druglab:removemember', identifier, index)
-                end
-            },
-        }
-    })
-end
-
-function ClosestsPeople(index)
-    local elements = {}
-
-    local closestPlayer, closestPlayerDistance = ESX.Game.GetClosestPlayer()
-
-    if closestPlayerDistance < 3.0 then
-        local ClosestsPlayer = GetPlayerServerId(closestPlayer)
-        ESX.TriggerServerCallback('th-druglab:medlemmenu', function(data)
-            local elements = {}
-        
-            for _, v in pairs(data) do
-                if v.name then
-                    table.insert(elements, {
-                        title = '['..v.source..'] '..v.name,
-                        description = 'Job: '..v.job..' \nRangering: '..v.jobGrade,
-                        icon = 'user',
-                        onSelect = function()
-                            TriggerServerEvent('th-druglabs:addmember', v.name, v.identifier, index)
-                        end
-                    })
-                end
-            end
-        
-            lib.registerContext({
-                id = 'add_members',
-                title = 'Tilføj et medlem',
-                options = elements
-            })
-        
-            lib.showContext('add_members')
-        end, ClosestsPlayer)
-    else
-        notifyNoPlayers()
-    end
 end
 
 function SkiftPin(pinkode, id)
@@ -599,16 +566,16 @@ function SkiftPin(pinkode, id)
     local nyKode = input[1]
 
 
-    ESX.TriggerServerCallback('th-druglabs:skiftkode', function(data)
+    ESX.TriggerServerCallback('arp-druglabs:skiftkode', function(data)
         notifyKodeSkiftet(nyKode)
     end, pinkode, id, nyKode)
 end
 
 function NyDruglabLevel(index, points)
-    ESX.TriggerServerCallback('th-druglabs:getrightxp', function(output)
+    ESX.TriggerServerCallback('arp-druglabs:getrightxp', function(output)
         local PlayerPed  = GetPlayerServerId(PlayerId())
         if output >= 100 then
-            TriggerServerEvent('th-druglabs:resetpoints', PlayerPed, index)
+            TriggerServerEvent('arp-druglabs:resetpoints', PlayerPed, index)
         end
     end, index, points)
 end
