@@ -541,7 +541,14 @@ function Medlemmer(index)
 end
 
 function addMember(index)
-    
+    local players = ESX.Game.GetPlayersInArea(GetEntityCoords(cache.ped), 3.0)
+    print(players)
+
+    -- local elements = {}
+
+    -- for i = #players, 1, -1 do
+    --     table.insert()
+    -- end
 end
 
 function SkiftPin(pinkode, id)
