@@ -6,7 +6,7 @@ local ox_inventory = exports.ox_inventory
 AddEventHandler('onResourceStop', function()
     MySQL.update.await('UPDATE druglabs SET cooldown = 0')
 end)
-  
+
 
 RegisterCommand('createdruglab', function(source)
     local xPlayer = ESX.GetPlayerFromId(source)
@@ -25,7 +25,7 @@ ESX.RegisterServerCallback('arp-druglab:tjekOmdanItem', function(source, cb, val
     if not xPlayer or not access == 'access' then
         return
     end
-    
+
     if value == 'coke' then
         item = exports.ox_inventory:GetItem(1, Config.Shells.CokeShell.Omdan.omdanItem)
     elseif value == 'hash' then
@@ -45,13 +45,13 @@ ESX.RegisterServerCallback('arp-druglab:tjekOmdanItem', function(source, cb, val
     end
 
 
-    
+
 
 end)
 
 RegisterNetEvent('arp-druglab:giveItem', function(value, omdan, status)
     local xPlayer = ESX.GetPlayerFromId(source)
-    
+
     if not access == true and status == 'success' or status == 'failed' then
         return
     end
@@ -222,7 +222,7 @@ RegisterNetEvent('arp-druglab:reward', function(mission, ped, point)
     if not xPlayer then
         return
     end
-    
+
     if mission == 1 then
         xPlayer.addInventoryItem(Config.Missions.Mission1.Items.item, Config.Missions.Mission1.Items.antal)
         TriggerClientEvent('ox_lib:notify', ped, ({
@@ -267,7 +267,7 @@ ESX.RegisterServerCallback('arp-druglabs:tjeklockpick', function(source, cb)
     end
 
     local item = exports.ox_inventory:GetItem(1, Config.Missions.Item)
-    
+
     if item.count > 0 then
         xPlayer.removeInventoryItem(Config.Missions.Item, 1)
         cb(true)
@@ -294,7 +294,7 @@ RegisterNetEvent('arp-druglabs:resetpoints', function(PlayerPed, index)
         if v.lvl == 4 then
             return
         end
-        
+
         local newLevel = v.lvl + 1
 
         if newLevel == 4 then
@@ -349,14 +349,14 @@ ESX.RegisterServerCallback('arp-druglabs:getrightxp', function(source, cb, index
         })
         cb(new_point)
     end
-    
+
 end)
 
 ESX.RegisterServerCallback('arp-druglabs:checkCooldown', function(source, cb, index)
     local getTimer = MySQL.query.await('SELECT cooldown, id FROM druglabs WHERE id = ?', {
         index
     })
-    
+
     for k,v in pairs(getTimer) do
         if v.cooldown == 0 then
             cb(true)
@@ -378,35 +378,48 @@ ESX.RegisterServerCallback('arp-druglab:tjekpcaccess', function(source, cb, inde
         index
     })
 
-    for _, v in pairs(access) do 
+    for _, v in pairs(access) do
         if xPlayer.identifier == v.owner then
             cb(true)
         else
             cb(false)
-        end 
+        end
     end
 end)
 
--- RegisterNetEvent('arp-druglabs:addmember', function(name, identifier, currentindex)
---     local data = json.encode({identifier = identifier, name = name})
-    
---     MySQL.Async.fetchScalar('SELECT members FROM druglabs WHERE id = ?', {currentindex}, function(membersJson)
---         local members = {}
+RegisterNetEvent('arp-druglabs:addmember', function(id, name, isBoss)
 
---         if membersJson then
---             members = json.decode(membersJson)
---         end
+    local memberData = MySQL.query.await('SELECT identifier FROM druglabs-members')
+    local tPlayer = ESX.GetPlayerFromId(id)
 
---         if not members then
---             members = {}
---         end
-            
---         table.insert(members, {identifier = identifier, name = name})
-        
---         local updatedMembersJson = json.encode(members)
---         MySQL.Async.execute('UPDATE druglabs SET members = ? WHERE id = ?', {updatedMembersJson, currentindex})
---     end)
--- end)
+    for _,v in pairs(memberData) do
+        if v.identifier == identifier then
+            TriggerClientEvent('ox_lib:notify', source, {title = 'Denne person er allerede medlem af et druglab', type = 'warning'})
+        else
+            MySQL.insert.await('INSERT INTO `druglabs-members` VALUES (?, ?, ?, ?)', {
+                tPlayer.getIdentifier(), tPlayer.getJob(), name, isBoss
+            })
+        end
+    end
+    -- local data = json.encode({identifier = identifier, name = name})
+
+    -- MySQL.Async.fetchScalar('SELECT members FROM druglabs WHERE id = ?', {currentindex}, function(membersJson)
+    --     local members = {}
+
+    --     if membersJson then
+    --         members = json.decode(membersJson)
+    --     end
+
+    --     if not members then
+    --         members = {}
+    --     end
+
+    --     table.insert(members, {identifier = identifier, name = name})
+
+    --     local updatedMembersJson = json.encode(members)
+    --     MySQL.Async.execute('UPDATE druglabs SET members = ? WHERE id = ?', {updatedMembersJson, currentindex})
+    -- end)
+end)
 
 
 -- RegisterNetEvent('arp-druglabs:removemember', function(name, identifier, currentindex)
@@ -431,7 +444,7 @@ end)
 -- end)
 
 -- ESX.RegisterServerCallback('arp-druglabs:getmembers', function(source, cb, index)
---     local xPlayer = ESX.GetPlayerFromId(source) 
+--     local xPlayer = ESX.GetPlayerFromId(source)
 
 --     MySQL.Async.fetchScalar('SELECT members FROM druglabs WHERE id = ?', {index}, function(membersJson)
 --         if membersJson then
@@ -449,7 +462,7 @@ end)
 --                         name = memberData.name
 --                     })
 --                 end
---             end 
+--             end
 --             cb(data)
 --         end
 --     end)

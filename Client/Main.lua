@@ -541,8 +541,14 @@ function Medlemmer(index)
 end
 
 function addMember(index)
-    local players = ESX.Game.GetPlayersInArea(GetEntityCoords(cache.ped), 3.0)
-    print(players)
+    local input = lib.inputDialog('Giv et nyt medlem, adgang til druglabbet', {
+        {type = 'number', label = 'Angiv spillerens id', required = true},
+        {type = 'number', label = 'Skal spilleren være en del af ledelsen?', description = '1 = ja, 0 = nej', required = true},
+        {type = 'input', label = 'Spillerens fulde navn', required = true}
+    })
+
+    TriggerServerEvent('arp-druglabs:addmember', input[1], input[2], input[3])
+    
 
     -- local elements = {}
 
