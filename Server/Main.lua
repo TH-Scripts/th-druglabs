@@ -401,24 +401,6 @@ RegisterNetEvent('arp-druglabs:addmember', function(id, name, isBoss)
             })
         end
     end
-    -- local data = json.encode({identifier = identifier, name = name})
-
-    -- MySQL.Async.fetchScalar('SELECT members FROM druglabs WHERE id = ?', {currentindex}, function(membersJson)
-    --     local members = {}
-
-    --     if membersJson then
-    --         members = json.decode(membersJson)
-    --     end
-
-    --     if not members then
-    --         members = {}
-    --     end
-
-    --     table.insert(members, {identifier = identifier, name = name})
-
-    --     local updatedMembersJson = json.encode(members)
-    --     MySQL.Async.execute('UPDATE druglabs SET members = ? WHERE id = ?', {updatedMembersJson, currentindex})
-    -- end)
 end)
 
 
