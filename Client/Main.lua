@@ -540,6 +540,35 @@ function Medlemmer(index)
     })
 end
 
+function GetMembers()
+    ESX.TriggerServerCallback('th-druglabs:GetMembers', function(result)
+        for _,v in pairs(result) do
+            local elements = {}
+            local boss = nil
+
+            if v.isBoss == 1 then
+                boss = 'Ja'
+            elseif v.isBoss == 0 then
+                boss = 'Nej'
+            end
+
+            table.insert(elements, {
+                title = ''..v.navn..'',
+                description = 'Er vedkommende en del af ledelsen: ' .. boss .. '',
+                onSelect = function()
+                    ChangeMember(v.id)
+                end
+            })
+
+            lib.registerContext({
+                title = 'Medlemmer',
+                id = 'members',
+                options = elements
+            })
+        end
+    end, index)
+end
+
 function addMember(index)
     local input = lib.inputDialog('Giv et nyt medlem, adgang til druglabbet', {
         {type = 'number', label = 'Angiv spillerens id', required = true},
@@ -548,13 +577,6 @@ function addMember(index)
     })
 
     TriggerServerEvent('arp-druglabs:addmember', input[1], input[2], input[3])
-    
-
-    -- local elements = {}
-
-    -- for i = #players, 1, -1 do
-    --     table.insert()
-    -- end
 end
 
 function SkiftPin(pinkode, id)

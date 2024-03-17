@@ -425,27 +425,18 @@ end)
 --     end)
 -- end)
 
--- ESX.RegisterServerCallback('arp-druglabs:getmembers', function(source, cb, index)
---     local xPlayer = ESX.GetPlayerFromId(source)
+ESX.RegisterServerCallback('arp-druglabs:getmembers', function(source, cb, index)
+    local data = MySQL.query.await('SELECT * FROM druglabs-members WHERE lab-id = ?', {
+        index
+    })
+    local callback = {}
+    for _,v in pairs(data) do
+        table.insert(callback, {
+            isBoss = v.isBoss,
+            navn = v.name,
+            id = v.identifier
+        })
+    end
 
---     MySQL.Async.fetchScalar('SELECT members FROM druglabs WHERE id = ?', {index}, function(membersJson)
---         if membersJson then
---             local members = json.decode(membersJson)
---             print(json.encode(members))
-
-
---             local data = {}
-
---             if not json.encode(members) == 'null' then
---                 for _, memberData in pairs(members) do
---                     print('hello')
---                     table.insert(data, {
---                         identifier = memberData.identifier,
---                         name = memberData.name
---                     })
---                 end
---             end
---             cb(data)
---         end
---     end)
--- end)
+    cb(callback)
+end)

@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS `druglabs` (
 ) ENGINE=InnoDB AUTO_INCREMENT=49 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 CREATE TABLE IF NOT EXISTS `druglabs-members` (
+  `lab-id` int(11) DEFAULT 0,
   `license` varchar(50) DEFAULT NULL,
   `gang` varchar(20) DEFAULT NULL,
   `name` varchar(30) DEFAULT NULL,
