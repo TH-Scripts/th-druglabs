@@ -541,8 +541,8 @@ function Medlemmer(index)
     lib.showContext('members')
 end
 
-function GetMembers()
-    ESX.TriggerServerCallback('th-druglabs:GetMembers', function(result)
+function GetMembers(index)
+    ESX.TriggerServerCallback('arp-druglabs:getmembers', function(result)
         for _,v in pairs(result) do
             local elements = {}
             local boss = nil

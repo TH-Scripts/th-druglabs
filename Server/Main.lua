@@ -426,7 +426,7 @@ end)
 -- end)
 
 ESX.RegisterServerCallback('arp-druglabs:getmembers', function(source, cb, index)
-    local data = MySQL.query.await('SELECT * FROM druglabs-members WHERE lab-id = ?', {
+    local data = MySQL.query.await('SELECT * FROM `druglabs-members` WHERE lab-id = ?', {
         index
     })
     local callback = {}
