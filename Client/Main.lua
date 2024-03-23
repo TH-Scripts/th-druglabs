@@ -538,6 +538,7 @@ function Medlemmer(index)
             }
         }
     })
+    lib.showContext('members')
 end
 
 function GetMembers()
